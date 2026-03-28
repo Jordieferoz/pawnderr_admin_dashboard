@@ -1,6 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { authLogin } from "@utils/api";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -26,23 +30,55 @@ const FormSchema = z.object({
 });
 
 export function LoginForm() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      remember: false,
+      email: "admin@pawnderr.com",
+      password: "Admin@123",
+      remember: true,
     },
   });
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    toast("You submitted the following values", {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+    setIsLoading(true);
+    try {
+      const loginResponse = await authLogin({
+        email: data.email,
+        password: data.password,
+      });
+
+      console.log(loginResponse, "loginResponse");
+
+      if (loginResponse.data && loginResponse.data.data) {
+        const result = await signIn("credentials", {
+          redirect: false,
+          user: JSON.stringify(loginResponse.data.data),
+        });
+
+        if (result?.ok) {
+          toast.success("Login successful");
+          router.push("/");
+          router.refresh();
+        } else {
+          toast.error("Login failed", {
+            description: result?.error || "Unknown error",
+          });
+        }
+      } else {
+        toast.error("Login failed", {
+          description: "Invalid credentials or server error",
+        });
+      }
+    } catch (error) {
+      toast.error("An error occurred", {
+        description: "Please try again later.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -108,8 +144,8 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <Button className="w-full" type="submit">
-          Login
+        <Button className="w-full" type="submit" disabled={isLoading}>
+          {isLoading ? "Logging in..." : "Login"}
         </Button>
       </form>
     </Form>

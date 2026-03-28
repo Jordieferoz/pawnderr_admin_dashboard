@@ -92,7 +92,7 @@ export const globalApiService = <TDataType, TApiResponse>(
       headers: {}, // Initialize headers object
     };
 
-    if (instance === "chatInstance" && userId) {
+    if ((instance as string) === "chatInstance" && userId) {
       config.headers["x-user-id"] = userId;
     }
 

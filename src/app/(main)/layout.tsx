@@ -2,14 +2,13 @@ import type { ReactNode } from "react";
 
 import { cookies } from "next/headers";
 
-import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/AppSidebar";
+import { AppSidebar } from "@/app/(main)/_components/sidebar/AppSidebar";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { users } from "@/data/users";
 import {
   SIDEBAR_COLLAPSIBLE_VALUES,
   SIDEBAR_VARIANT_VALUES,
@@ -58,7 +57,7 @@ export default async function Layout({
               <SearchDialog />
             </div>
             <div className="flex items-center gap-2">
-              <ProfileDropdown users={users} />
+              <ProfileDropdown />
             </div>
           </div>
         </header>

@@ -7,29 +7,49 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
+import { getSession } from "next-auth/react";
 import { TApiResponse } from "../types";
 
-export const BASE_URL = process.env.NEXT_PUBLIC_DEV_API_URL;
-export const CHAT_BASE_URL = process.env.NEXT_PUBLIC_CHAT_API_BASE_URL;
+export const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 //@ts-ignore
 function axiosInstanceCreator(baseURL: string | undefined, accessKey?: string) {
   const axiosInstance: AxiosInstance = axios.create();
   axiosInstance.defaults.baseURL = baseURL;
-  axiosInstance.defaults.withCredentials = true; //should not remove this line
+
   axiosInstance.interceptors.request.use(
-    function (config: InternalAxiosRequestConfig) {
+    async function (config: InternalAxiosRequestConfig) {
       if (!config.headers) {
         config.headers = {} as AxiosRequestHeaders;
       }
 
-      if (accessKey) {
+      if (typeof window !== "undefined") {
+        const session = await getSession();
+        if (session?.accessToken) {
+          if (baseURL === BASE_URL) {
+            config.headers["access-token"] = session.accessToken;
+            config.headers["Authorization"] = `Bearer ${session.accessToken}`;
+          } else {
+            config.headers["AccessKey"] = session.accessToken;
+            config.headers["Authorization"] = `Bearer ${session.accessToken}`;
+          }
+        } else if (accessKey) {
+          // Fallback to static key if no session (e.g. server side or not logged in)
+          if (baseURL === BASE_URL) {
+            config.headers["access-token"] = accessKey;
+            config.headers["Authorization"] = `Bearer ${accessKey}`;
+          } else {
+            config.headers["AccessKey"] = accessKey;
+            config.headers["Authorization"] = `Bearer ${accessKey}`;
+          }
+        }
+      } else if (accessKey) {
         if (baseURL === BASE_URL) {
-          // Merge with existing headers instead of replacing
           config.headers["access-token"] = accessKey;
+          config.headers["Authorization"] = `Bearer ${accessKey}`;
         } else {
-          // Merge with existing headers instead of replacing
           config.headers["AccessKey"] = accessKey;
+          config.headers["Authorization"] = `Bearer ${accessKey}`;
         }
       }
 
@@ -56,11 +76,9 @@ function axiosInstanceCreator(baseURL: string | undefined, accessKey?: string) {
   return axiosInstance;
 }
 
-const mainInstance = axiosInstanceCreator(BASE_URL, "key");
-const chatInstance = axiosInstanceCreator(CHAT_BASE_URL, "");
+const mainInstance = axiosInstanceCreator(BASE_URL);
 
 export const API_INSTANCES = {
   mainInstance: mainInstance,
-  chatInstance: chatInstance,
 };
 export default API_INSTANCES;

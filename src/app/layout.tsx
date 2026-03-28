@@ -8,6 +8,7 @@ import { fontVars } from "@/lib/fonts/registry";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
 
+import { NextAuthProvider } from "@/components/NextAuthProvider";
 import { BootScript } from "@/scripts/BootScript";
 import "./globals.css";
 
@@ -45,8 +46,10 @@ export default function RootLayout({
           navbarStyle={navbar_style}
           font={font}
         >
-          {children}
-          <Toaster />
+          <NextAuthProvider>
+            {children}
+            <Toaster />
+          </NextAuthProvider>
         </PreferencesStoreProvider>
       </body>
     </html>
