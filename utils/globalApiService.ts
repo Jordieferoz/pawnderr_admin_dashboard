@@ -52,6 +52,31 @@ export const globalPostService = <TDataType, U>(
   });
 };
 
+export const globalPutService = <TDataType, U>(
+  url: string,
+  data: TDataType,
+  instance: keyof typeof API_INSTANCES = "mainInstance",
+): Promise<TResponse<U>> => {
+  return new Promise(function (resolve, reject) {
+    API_INSTANCES[instance]({
+      method: "PUT",
+      url: url,
+      data: data,
+    })
+      .then((response: AxiosResponse<U>) => {
+        const _response: TResponse<U> = {
+          data: response.data,
+          statusCode: response.status,
+          message: response.statusText,
+        };
+        resolve(_response);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
 export const globalDeleteService = <TParamType, U>(
   url: string,
   params: TParamType,

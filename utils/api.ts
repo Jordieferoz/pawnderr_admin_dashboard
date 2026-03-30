@@ -1,5 +1,9 @@
 import { TResponse } from "../types";
-import { globalGetService, globalPostService } from "./globalApiService";
+import {
+  globalGetService,
+  globalPostService,
+  globalPutService,
+} from "./globalApiService";
 
 export const authLogin = (payload: {
   email: string;
@@ -45,6 +49,60 @@ export const authRefreshToken = (payload: {
 export const authMe = (): Promise<TResponse<any>> => {
   return new Promise((resolve, reject) => {
     globalGetService<any, any>(`auth/me`, {})
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const fetchUsers = (params?: {
+  is_premium?: boolean;
+  is_active?: boolean;
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: string;
+}): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalGetService<any, any>(`users`, params)
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const fetchUserDetails = (userId: number): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalGetService<any, any>(`users/${userId}`, {})
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const blockUser = (userId: number): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalPutService<any, any>(`users/${userId}/block`, {})
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+export const unBlockUser = (userId: number): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalPutService<any, any>(`users/${userId}/unblock`, {})
       .then((response) => {
         resolve(response);
       })

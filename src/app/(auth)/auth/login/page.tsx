@@ -1,11 +1,23 @@
 import { APP_CONFIG } from "@/config/app-config";
 import { LoginForm } from "@/ui_components/auth";
+import { images } from "@utils/images";
+import Image from "next/image";
 
 export default function LoginPage() {
   return (
     <>
       <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[350px]">
-        <div className="space-y-2 text-center">
+        <div className="space-y-4 text-center">
+          <div className="flex justify-center">
+            <Image
+              src={images.logo.src}
+              alt="Pawnderr"
+              width={180}
+              height={40}
+              priority
+              className="h-10 w-auto"
+            />
+          </div>
           <h1 className="font-medium text-3xl">Login to your account</h1>
         </div>
         <div className="space-y-4">
