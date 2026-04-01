@@ -6,32 +6,27 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
-import { fetchUsers } from "@utils/api";
+import { fetchSubscriptions } from "@utils/api";
 import { Loader2, SlidersHorizontal, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { User, UserPagination } from "../../../../types/users";
-import { userColumns } from "./columns";
+import { Subscription, SubscriptionPagination } from "../../../../types/subscriptions";
+import { subscriptionColumns } from "./columns";
 
 type FilterState = {
-  is_active: boolean | undefined;
-  is_premium: boolean | undefined;
+  status: "active" | "expired" | "cancelled" | undefined;
 };
 
-const FILTER_LABELS: Record<
-  "active" | "inactive" | "premium" | "free",
-  string
-> = {
+const FILTER_LABELS: Record<"active" | "expired" | "cancelled", string> = {
   active: "Active",
-  inactive: "Inactive",
-  premium: "Premium",
-  free: "Free",
+  expired: "Expired",
+  cancelled: "Cancelled",
 };
 
-export default function UsersPage() {
+export default function SubscriptionPage() {
   const router = useRouter();
-  const [data, setData] = useState<User[]>([]);
-  const [pagination, setPagination] = useState<UserPagination | null>(null);
+  const [data, setData] = useState<Subscription[]>([]);
+  const [pagination, setPagination] = useState<SubscriptionPagination | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,43 +36,41 @@ export default function UsersPage() {
 
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
-    is_active: undefined,
-    is_premium: undefined,
+    status: undefined,
   });
 
-  const loadUsers = useCallback(async () => {
+  const loadSubscriptions = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchUsers({
+      const res = await fetchSubscriptions({
         page,
         limit: pageSize,
-        ...(filters.is_active !== undefined
-          ? { is_active: filters.is_active }
+        ...(filters.status !== undefined
+          ? { status: filters.status }
           : {}),
-        ...(filters.is_premium !== undefined
-          ? { is_premium: filters.is_premium }
-          : {}),
+        sort: "created_at",
+        order: "DESC",
       });
       const inner = res?.data?.data?.data;
       const paginationData = res?.data?.data?.pagination;
       setData(inner ?? []);
       setPagination(paginationData ?? null);
     } catch {
-      setError("Failed to load users. Please try again.");
+      setError("Failed to load subscriptions. Please try again.");
     } finally {
       setLoading(false);
     }
   }, [page, pageSize, filters]);
 
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    loadSubscriptions();
+  }, [loadSubscriptions]);
 
   // Build a TanStack table instance (manual pagination)
   const table = useReactTable({
     data,
-    columns: userColumns,
+    columns: subscriptionColumns,
     state: {
       pagination: {
         pageIndex: page - 1,
@@ -98,37 +91,31 @@ export default function UsersPage() {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  // Helper: toggle a boolean filter (undefined → true → false → undefined)
-  function toggleFilter(key: keyof FilterState, value: boolean) {
+  function setStatusFilter(status: "active" | "expired" | "cancelled") {
     setFilters((prev) => {
-      const current = prev[key];
-      const next = current === value ? undefined : value;
-      return { ...prev, [key]: next };
+      if (prev.status === status) return { status: undefined };
+      return { status };
     });
     setPage(1);
   }
 
   function clearFilters() {
-    setFilters({ is_active: undefined, is_premium: undefined });
+    setFilters({ status: undefined });
     setPage(1);
   }
 
-  const hasFilters =
-    filters.is_active !== undefined || filters.is_premium !== undefined;
-
-  const activeFilterCount = [filters.is_active, filters.is_premium].filter(
-    (v) => v !== undefined,
-  ).length;
+  const hasFilters = filters.status !== undefined;
+  const activeFilterCount = filters.status !== undefined ? 1 : 0;
 
   return (
     <div className="@container/main flex flex-col gap-4 md:gap-6">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Subscriptions</h1>
           {pagination && (
             <p className="text-sm text-muted-foreground mt-0.5">
-              {pagination.total} total users
+              {pagination.total} total subscriptions
             </p>
           )}
         </div>
@@ -147,41 +134,31 @@ export default function UsersPage() {
 
           {/* Status filters */}
           <Button
-            variant={filters.is_active === true ? "default" : "outline"}
+            variant={filters.status === "active" ? "default" : "outline"}
             size="sm"
             className="h-8 text-xs"
-            onClick={() => toggleFilter("is_active", true)}
+            onClick={() => setStatusFilter("active")}
           >
             {FILTER_LABELS.active}
           </Button>
           <Button
-            variant={filters.is_active === false ? "default" : "outline"}
+            variant={filters.status === "expired" ? "default" : "outline"}
             size="sm"
             className="h-8 text-xs"
-            onClick={() => toggleFilter("is_active", false)}
+            onClick={() => setStatusFilter("expired")}
           >
-            {FILTER_LABELS.inactive}
+            {FILTER_LABELS.expired}
+          </Button>
+          <Button
+            variant={filters.status === "cancelled" ? "default" : "outline"}
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setStatusFilter("cancelled")}
+          >
+            {FILTER_LABELS.cancelled}
           </Button>
 
           <div className="h-5 w-px bg-border" />
-
-          {/* Premium filters */}
-          <Button
-            variant={filters.is_premium === true ? "default" : "outline"}
-            size="sm"
-            className="h-8 text-xs"
-            onClick={() => toggleFilter("is_premium", true)}
-          >
-            {FILTER_LABELS.premium}
-          </Button>
-          <Button
-            variant={filters.is_premium === false ? "default" : "outline"}
-            size="sm"
-            className="h-8 text-xs"
-            onClick={() => toggleFilter("is_premium", false)}
-          >
-            {FILTER_LABELS.free}
-          </Button>
 
           {hasFilters && (
             <Button
@@ -203,7 +180,7 @@ export default function UsersPage() {
         {loading && (
           <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-sm">Loading users…</span>
+            <span className="text-sm">Loading subscriptions…</span>
           </div>
         )}
 
@@ -212,7 +189,7 @@ export default function UsersPage() {
           <div className="flex flex-col items-center justify-center py-16 gap-2 text-destructive">
             <p className="text-sm font-medium">{error}</p>
             <button
-              onClick={loadUsers}
+              onClick={loadSubscriptions}
               className="text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               Retry
@@ -226,8 +203,8 @@ export default function UsersPage() {
             <div className="overflow-x-auto">
               <DataTable
                 table={table}
-                columns={userColumns}
-                onRowClick={(row) => router.push(`/users/${row.original.id}`)}
+                columns={subscriptionColumns}
+                onRowClick={(row) => router.push(`/users/${row.original.users.id}`)}
               />
             </div>
             <div className="border-t py-3">

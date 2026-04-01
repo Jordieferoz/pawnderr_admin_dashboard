@@ -1,4 +1,9 @@
-import { LayoutDashboard, Users, type LucideIcon } from "lucide-react";
+import {
+  CircleDollarSign,
+  LayoutDashboard,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -37,6 +42,11 @@ export const sidebarItems: NavGroup[] = [
         title: "Users",
         url: "/users",
         icon: Users,
+      },
+      {
+        title: "Subscriptions",
+        url: "/subscriptions",
+        icon: CircleDollarSign,
       },
     ],
   },

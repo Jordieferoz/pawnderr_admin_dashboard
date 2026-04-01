@@ -111,3 +111,22 @@ export const unBlockUser = (userId: number): Promise<TResponse<any>> => {
       });
   });
 };
+
+export const fetchSubscriptions = (params?: {
+  status?: string;
+  user_id?: number;
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: string;
+}): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalGetService<any, any>(`subscriptions`, params)
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
