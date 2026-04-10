@@ -130,10 +130,10 @@ function PetDetailedCard({
   );
   const [verificationLoading, setVerificationLoading] = useState(false);
 
-  const handleVerifyToggle = async () => {
+  const handleVerifyToggle = async (checked: boolean) => {
     setVerificationLoading(true);
     try {
-      if (isVerificationStatus === "approved") {
+      if (!checked) {
         await unverifyPet(pet.id);
         setIsVerificationStatus("pending");
         toast.success("Pet has been unverified.");
@@ -259,65 +259,18 @@ function PetDetailedCard({
               )}
             </div>
 
-            {/* Verify Action Dropdown */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant={
-                    isVerificationStatus === "approved"
-                      ? "destructive"
-                      : "default"
-                  }
-                  size="sm"
-                  className="shrink-0 gap-1.5"
-                  disabled={verificationLoading}
-                >
-                  {verificationLoading ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : isVerificationStatus === "approved" ? (
-                    <ShieldOff className="h-3.5 w-3.5" />
-                  ) : (
-                    <BadgeCheck className="h-3.5 w-3.5" />
-                  )}
-                  {isVerificationStatus === "approved" ? "Unverify" : "Verify"}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="flex items-center gap-2">
-                    {isVerificationStatus === "approved" ? (
-                      <AlertTriangle className="h-4 w-4 text-destructive" />
-                    ) : (
-                      <BadgeCheck className="h-4 w-4 text-primary" />
-                    )}
-                    {isVerificationStatus === "approved"
-                      ? "Unverify"
-                      : "Verify"}{" "}
-                    {pet.name}?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {isVerificationStatus === "approved"
-                      ? "This will unverify the pet profile. You can verify them again at any time."
-                      : "This will mark the pet as officially verified on the platform."}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleVerifyToggle}
-                    className={
-                      isVerificationStatus === "approved"
-                        ? "bg-destructive hover:bg-destructive/90"
-                        : ""
-                    }
-                  >
-                    {isVerificationStatus === "approved"
-                      ? "Unverify"
-                      : "Verify"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {/* Verify Action Toggle */}
+            <div className="flex items-center space-x-2 bg-muted/30 px-3 py-1.5 rounded-md border shrink-0">
+              <Label htmlFor={`verify-${pet.id}`} className="text-sm font-medium whitespace-nowrap cursor-pointer">
+                {isVerificationStatus === "approved" ? "Verified" : "Unverified"}
+              </Label>
+              <Switch
+                id={`verify-${pet.id}`}
+                checked={isVerificationStatus === "approved"}
+                onCheckedChange={handleVerifyToggle}
+                disabled={verificationLoading}
+              />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 mt-auto pt-2">
             <Badge variant="outline" className="capitalize">
@@ -420,8 +373,8 @@ function PetDetailedCard({
                       {optionLabels.map((lbl: string, idx: number) => (
                         <Badge
                           key={idx}
-                          variant="secondary"
-                          className="font-normal opacity-80"
+                          variant="default"
+                          className="font-normal"
                         >
                           {lbl}
                         </Badge>
@@ -463,8 +416,8 @@ function PetDetailedCard({
                       {optionLabels.map((lbl: string, idx: number) => (
                         <Badge
                           key={idx}
-                          variant="outline"
-                          className="font-normal bg-muted/30"
+                          variant="default"
+                          className="font-normal"
                         >
                           {lbl}
                         </Badge>
@@ -557,21 +510,22 @@ export default function UserDetailPage({
       .finally(() => setPetsLoading(false));
   }, [userId]);
 
-  async function handleBlockToggle() {
+  async function handleBlockToggle(checked: boolean) {
     if (!user) return;
     setActionLoading(true);
     try {
-      if (user.is_active) {
+      if (!checked) {
         await blockUser(userId);
       } else {
         await unBlockUser(userId);
       }
       // Optimistically toggle is_active
       setUser((prev) =>
-        prev ? { ...prev, is_active: !prev.is_active } : prev,
+        prev ? { ...prev, is_active: checked } : prev,
       );
+      toast.success(checked ? "User unblocked successfully" : "User blocked successfully");
     } catch {
-      // No-op: keep existing state on failure
+      toast.error("Failed to update user block status");
     } finally {
       setActionLoading(false);
     }
@@ -641,49 +595,17 @@ export default function UserDetailPage({
             </div>
 
             {/* Block / Unblock action */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant={user.is_active ? "destructive" : "outline"}
-                  size="sm"
-                  className="mt-2 w-full gap-1.5"
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <ShieldOff className="h-3.5 w-3.5" />
-                  )}
-                  {user.is_active ? "Block User" : "Unblock User"}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-destructive" />
-                    {user.is_active ? "Block" : "Unblock"} {user.name}?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {user.is_active
-                      ? "This will prevent the user from accessing the platform. You can unblock them at any time."
-                      : "This will restore the user's access to the platform."}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleBlockToggle}
-                    className={
-                      user.is_active
-                        ? "bg-destructive hover:bg-destructive/90"
-                        : ""
-                    }
-                  >
-                    {user.is_active ? "Block" : "Unblock"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <div className="flex items-center justify-between w-full mt-4 p-3 border rounded-md bg-muted/20">
+              <Label htmlFor={`user-active-${user.id}`} className="text-sm font-medium cursor-pointer">
+                {user.is_active ? "Active" : "Blocked"}
+              </Label>
+              <Switch
+                id={`user-active-${user.id}`}
+                checked={user.is_active}
+                onCheckedChange={handleBlockToggle}
+                disabled={actionLoading}
+              />
+            </div>
           </div>
 
           {/* Details card */}
