@@ -156,3 +156,71 @@ export const setMaintenanceMode = (payload: {
       });
   });
 };
+
+export const fetchUserPets = (
+  userId: number,
+  params?: {
+    page?: number;
+    limit?: number;
+    sort?: string;
+    order?: string;
+  }
+): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalGetService<any, any>(`pets/user/${userId}`, params || { page: 1, limit: 10, sort: 'created_at', order: 'DESC' })
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const updateFoundingDog = (petId: number, is_founding_dog: boolean): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalPutService<any, any>(`pets/${petId}/founding-dog`, { is_founding_dog })
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const verifyPet = (petId: number): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalPutService<any, any>(`pets/${petId}/verify`, {})
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const unverifyPet = (petId: number): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalPutService<any, any>(`pets/${petId}/unverify`, {})
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const fetchPetRegistrationData = (): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalGetService<any, any>(`pets/registration-data`, {})
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
