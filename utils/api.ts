@@ -130,3 +130,29 @@ export const fetchSubscriptions = (params?: {
       });
   });
 };
+
+export const fetchMaintenanceStatus = (): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalGetService<any, any>(`settings/maintenance/status`, null)
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const setMaintenanceMode = (payload: {
+  enabled: boolean;
+}): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalPostService<any, any>(`settings/maintenance`, payload)
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
