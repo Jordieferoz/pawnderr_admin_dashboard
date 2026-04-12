@@ -169,8 +169,7 @@ function PetDetailDialog({
     {
       approved: {
         label: "Approved",
-        className:
-          "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+        className: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
       },
       pending: {
         label: "Pending",
@@ -181,11 +180,10 @@ function PetDetailDialog({
         className: "bg-red-500/15 text-red-600 border-red-500/30",
       },
     };
-  const verifyCfg =
-    verificationMap[pet.verification_status] ?? {
-      label: pet.verification_status,
-      className: "",
-    };
+  const verifyCfg = verificationMap[pet.verification_status] ?? {
+    label: pet.verification_status,
+    className: "",
+  };
 
   return (
     <>
@@ -292,13 +290,20 @@ function PetDetailDialog({
             <div className="flex flex-wrap gap-3">
               <div className="flex items-center gap-2.5 border rounded-lg px-3 py-2 bg-muted/20 min-w-[160px]">
                 <div className="flex flex-col">
-                  <Label htmlFor={`verify-dialog-${pet.id}`} className="text-sm font-medium cursor-pointer">
+                  <Label
+                    htmlFor={`verify-dialog-${pet.id}`}
+                    className="text-sm font-medium cursor-pointer"
+                  >
                     {isVerified ? "Verified" : "Unverified"}
                   </Label>
-                  <span className="text-xs text-muted-foreground">Verification status</span>
+                  <span className="text-xs text-muted-foreground">
+                    Verification status
+                  </span>
                 </div>
                 <div className="ml-auto flex items-center gap-1.5">
-                  {verifyLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                  {verifyLoading && (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                  )}
                   <Switch
                     id={`verify-dialog-${pet.id}`}
                     checked={isVerified}
@@ -310,13 +315,20 @@ function PetDetailDialog({
 
               <div className="flex items-center gap-2.5 border rounded-lg px-3 py-2 bg-muted/20 min-w-[160px]">
                 <div className="flex flex-col">
-                  <Label htmlFor={`founding-dialog-${pet.id}`} className="text-sm font-medium cursor-pointer">
+                  <Label
+                    htmlFor={`founding-dialog-${pet.id}`}
+                    className="text-sm font-medium cursor-pointer"
+                  >
                     {isFoundingDog ? "Founding Dog" : "Not Founding Dog"}
                   </Label>
-                  <span className="text-xs text-muted-foreground">Founding dog status</span>
+                  <span className="text-xs text-muted-foreground">
+                    Founding dog status
+                  </span>
                 </div>
                 <div className="ml-auto flex items-center gap-1.5">
-                  {foundingLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                  {foundingLoading && (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                  )}
                   <Switch
                     id={`founding-dialog-${pet.id}`}
                     checked={isFoundingDog}
@@ -342,7 +354,9 @@ function PetDetailDialog({
               <div>
                 <p className="text-xs text-muted-foreground mb-0.5">Age</p>
                 <p className="font-medium">
-                  {pet.age != null ? `${pet.age} yr${pet.age !== 1 ? "s" : ""}` : "—"}
+                  {pet.age != null
+                    ? `${pet.age} yr${pet.age !== 1 ? "s" : ""}`
+                    : "—"}
                 </p>
               </div>
               <div>
@@ -402,7 +416,9 @@ function PetDetailDialog({
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Fun Fact / Habit
                 </p>
-                <p className="text-sm leading-relaxed">{pet.fun_fact_or_habit}</p>
+                <p className="text-sm leading-relaxed">
+                  {pet.fun_fact_or_habit}
+                </p>
               </div>
             )}
 
@@ -432,7 +448,11 @@ function PetDetailDialog({
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {group.labels.map((lbl, i) => (
-                          <Badge key={i} variant="secondary" className="font-normal">
+                          <Badge
+                            key={i}
+                            variant="secondary"
+                            className="font-normal"
+                          >
                             {lbl}
                           </Badge>
                         ))}
@@ -457,7 +477,11 @@ function PetDetailDialog({
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {group.labels.map((lbl, i) => (
-                          <Badge key={i} variant="outline" className="font-normal bg-muted/30">
+                          <Badge
+                            key={i}
+                            variant="outline"
+                            className="font-normal bg-muted/30"
+                          >
                             {lbl}
                           </Badge>
                         ))}
@@ -522,7 +546,7 @@ export default function PetsPage() {
         limit: pageSize,
         sort: "created_at",
         order: "DESC",
-        ...(searchValue ? { q: searchValue } : {}),
+        ...(searchValue ? { search: searchValue } : {}),
         ...(filters.is_active !== undefined
           ? { is_active: filters.is_active }
           : {}),
@@ -561,7 +585,10 @@ export default function PetsPage() {
     setPage(1);
   }
 
-  function toggleBoolFilter(key: "is_active" | "is_founding_dog", value: boolean) {
+  function toggleBoolFilter(
+    key: "is_active" | "is_founding_dog",
+    value: boolean,
+  ) {
     setFilters((prev) => ({
       ...prev,
       [key]: prev[key] === value ? undefined : value,
@@ -572,13 +599,18 @@ export default function PetsPage() {
   function toggleVerificationStatus(value: string) {
     setFilters((prev) => ({
       ...prev,
-      verification_status: prev.verification_status === value ? undefined : value,
+      verification_status:
+        prev.verification_status === value ? undefined : value,
     }));
     setPage(1);
   }
 
   function clearFilters() {
-    setFilters({ is_active: undefined, is_founding_dog: undefined, verification_status: undefined });
+    setFilters({
+      is_active: undefined,
+      is_founding_dog: undefined,
+      verification_status: undefined,
+    });
     setPage(1);
   }
 
@@ -699,7 +731,9 @@ export default function PetsPage() {
           {(["approved", "pending", "rejected"] as const).map((status) => (
             <Button
               key={status}
-              variant={filters.verification_status === status ? "default" : "outline"}
+              variant={
+                filters.verification_status === status ? "default" : "outline"
+              }
               size="sm"
               className="h-8 text-xs capitalize"
               onClick={() => toggleVerificationStatus(status)}
