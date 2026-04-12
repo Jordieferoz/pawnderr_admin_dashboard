@@ -164,10 +164,13 @@ export const fetchUserPets = (
     limit?: number;
     sort?: string;
     order?: string;
-  }
+  },
 ): Promise<TResponse<any>> => {
   return new Promise((resolve, reject) => {
-    globalGetService<any, any>(`pets/user/${userId}`, params || { page: 1, limit: 10, sort: 'created_at', order: 'DESC' })
+    globalGetService<any, any>(
+      `pets/user/${userId}`,
+      params || { page: 1, limit: 10, sort: "created_at", order: "DESC" },
+    )
       .then((response) => {
         resolve(response);
       })
@@ -177,9 +180,14 @@ export const fetchUserPets = (
   });
 };
 
-export const updateFoundingDog = (petId: number, is_founding_dog: boolean): Promise<TResponse<any>> => {
+export const updateFoundingDog = (
+  petId: number,
+  is_founding_dog: boolean,
+): Promise<TResponse<any>> => {
   return new Promise((resolve, reject) => {
-    globalPutService<any, any>(`pets/${petId}/founding-dog`, { is_founding_dog })
+    globalPutService<any, any>(`pets/${petId}/founding-dog`, {
+      is_founding_dog,
+    })
       .then((response) => {
         resolve(response);
       })
@@ -216,6 +224,28 @@ export const unverifyPet = (petId: number): Promise<TResponse<any>> => {
 export const fetchPetRegistrationData = (): Promise<TResponse<any>> => {
   return new Promise((resolve, reject) => {
     globalGetService<any, any>(`pets/registration-data`, {})
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const fetchPets = (params?: {
+  user_id?: number;
+  q?: string;
+  is_active?: boolean;
+  is_founding_dog?: boolean;
+  verification_status?: string;
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: string;
+}): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalGetService<any, any>(`pets`, params)
       .then((response) => {
         resolve(response);
       })

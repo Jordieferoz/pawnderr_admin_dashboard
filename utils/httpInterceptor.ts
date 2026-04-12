@@ -68,7 +68,15 @@ function axiosInstanceCreator(baseURL: string | undefined, accessKey?: string) {
         return Promise.reject(response);
       }
     },
-    function (error: AxiosError) {
+    async function (error: AxiosError) {
+      if (error.response?.status === 401 && typeof window !== "undefined") {
+        // Avoid triggering signOut multiple times for concurrent expired requests
+        if (!(window as any).__signingOut) {
+          (window as any).__signingOut = true;
+          const { signOut } = await import("next-auth/react");
+          await signOut({ callbackUrl: "/login" });
+        }
+      }
       return Promise.reject(error);
     },
   );

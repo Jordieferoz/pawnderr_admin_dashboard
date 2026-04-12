@@ -2,9 +2,7 @@
 
 import { Command, ServerCog } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useShallow } from "zustand/react/shallow";
-
+import { useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import {
   Sidebar,
@@ -17,12 +15,12 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import { useShallow } from "zustand/react/shallow";
 
 import { APP_CONFIG } from "@/config/app-config";
 import { sidebarItems } from "@/navigation/sidebar-items";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
-import { fetchMaintenanceStatus, setMaintenanceMode } from "@utils/api";
+import { useMaintenanceStore } from "@/stores/maintenance/maintenance-store";
 
 import { NavMain } from "./NavMain";
 
@@ -35,44 +33,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     })),
   );
 
-  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isToggling, setIsToggling] = useState(false);
+  const { enabled: maintenanceEnabled, isLoading, isToggling, fetch, toggle } =
+    useMaintenanceStore();
 
   const variant = isSynced ? sidebarVariant : props.variant;
   const collapsible = isSynced ? sidebarCollapsible : props.collapsible;
 
   useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const resp = await fetchMaintenanceStatus();
-        setMaintenanceEnabled(resp.data?.data?.enabled ?? false);
-      } catch (err) {
-        toast.error("Failed to fetch maintenance status");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStatus();
-  }, []);
-
-  const handleToggle = async (checked: boolean) => {
-    setIsToggling(true);
-
-    setMaintenanceEnabled(checked);
-    try {
-      await setMaintenanceMode({ enabled: checked });
-      toast.success(
-        checked ? "Maintenance mode enabled" : "Maintenance mode disabled",
-      );
-    } catch (err) {
-      setMaintenanceEnabled(!checked);
-      toast.error("Failed to update maintenance mode");
-    } finally {
-      setIsToggling(false);
-    }
-  };
+    fetch();
+  }, [fetch]);
 
   return (
     <Sidebar {...props} variant={variant} collapsible={collapsible}>
@@ -110,7 +79,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Switch
               id="maintenance-toggle"
               checked={maintenanceEnabled}
-              onCheckedChange={handleToggle}
+              onCheckedChange={toggle}
               disabled={isToggling}
               className="data-[state=checked]:bg-amber-500"
             />

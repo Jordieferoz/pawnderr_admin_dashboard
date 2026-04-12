@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 
 import { AppSidebar } from "@/app/(main)/_components/sidebar/AppSidebar";
-import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
@@ -17,7 +16,6 @@ import { cn } from "@/lib/utils";
 import { getPreference } from "@/server/server-actions";
 
 import { ProfileDropdown } from "./_components/sidebar/ProfileDropdown";
-import { SearchDialog } from "./_components/sidebar/SearchDialog";
 
 export default async function Layout({
   children,
@@ -50,11 +48,11 @@ export default async function Layout({
           <div className="flex w-full items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-1 lg:gap-2">
               <SidebarTrigger className="-ml-1" />
-              <Separator
+              {/* <Separator
                 orientation="vertical"
                 className="mx-2 data-[orientation=vertical]:h-4"
               />
-              <SearchDialog />
+              <SearchDialog /> */}
             </div>
             <div className="flex items-center gap-2">
               <ProfileDropdown />
