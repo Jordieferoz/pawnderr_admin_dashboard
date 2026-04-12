@@ -92,7 +92,7 @@ export default function UsersPage() {
       const res = await fetchUsers({
         page,
         limit: pageSize,
-        ...(query ? { q: query } : {}),
+        ...(query ? { search: query } : {}),
         ...(isActive !== undefined ? { is_active: isActive } : {}),
         ...(isPremium !== undefined ? { is_premium: isPremium } : {}),
       });

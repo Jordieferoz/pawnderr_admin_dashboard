@@ -235,7 +235,7 @@ export const fetchPetRegistrationData = (): Promise<TResponse<any>> => {
 
 export const fetchPets = (params?: {
   user_id?: number;
-  q?: string;
+  search?: string;
   is_active?: boolean;
   is_founding_dog?: boolean;
   verification_status?: string;
