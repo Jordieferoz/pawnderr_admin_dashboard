@@ -65,25 +65,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="flex items-center gap-3 px-2 py-2 rounded-md border border-sidebar-border bg-sidebar-accent/40">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 overflow-hidden group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8">
           <ServerCog className="size-4 text-muted-foreground shrink-0" />
           <Label
             htmlFor="maintenance-toggle"
-            className="flex-1 text-sm cursor-pointer select-none"
+            className="flex-1 text-sm cursor-pointer select-none truncate group-data-[collapsible=icon]:hidden"
           >
             Maintenance Mode
           </Label>
-          {isLoading ? (
-            <Skeleton className="h-5 w-9 rounded-full" />
-          ) : (
-            <Switch
-              id="maintenance-toggle"
-              checked={maintenanceEnabled}
-              onCheckedChange={toggle}
-              disabled={isToggling}
-              className="data-[state=checked]:bg-amber-500"
-            />
-          )}
+          <div className="shrink-0 group-data-[collapsible=icon]:hidden">
+            {isLoading ? (
+              <Skeleton className="h-5 w-9 rounded-full" />
+            ) : (
+              <Switch
+                id="maintenance-toggle"
+                checked={maintenanceEnabled}
+                onCheckedChange={toggle}
+                disabled={isToggling}
+                className="data-[state=checked]:bg-amber-500"
+              />
+            )}
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>

@@ -29,6 +29,11 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  Mail,
+  Phone,
+  User as UserIcon,
+  Calendar,
+  LogIn,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -53,6 +58,39 @@ type FilterState = {
   is_founding_dog: boolean | undefined;
   verification_status: string | undefined;
 };
+
+// ─── Utilities & Components ───────────────────────────────────────────────────
+
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3 py-3 border-b last:border-b-0">
+      <span className="mt-0.5 text-muted-foreground">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+        <div className="text-sm font-medium break-all">{value}</div>
+      </div>
+    </div>
+  );
+}
 
 // ─── Pet Detail Dialog ────────────────────────────────────────────────────────
 
@@ -488,6 +526,84 @@ function PetDetailDialog({
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Owner Details */}
+            {pet.users && (
+              <div className="pt-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-t pt-4 mb-3">
+                  Owner Details
+                </p>
+                <div className="rounded-xl border bg-card shadow-sm p-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-lg font-semibold text-muted-foreground select-none">
+                      {pet.users.name?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">{pet.users.name}</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5 mb-1.5">
+                        #{pet.users.id} · {pet.users.gender === "prefer_not_to_say" ? "Prefer not to say" : pet.users.gender ? pet.users.gender.charAt(0).toUpperCase() + pet.users.gender.slice(1) : "—"}
+                      </p>
+                      <div className="flex gap-1.5 mt-1">
+                        <Badge variant={pet.users.is_active ? "default" : "destructive"} className="text-[10px] px-1.5 h-4">
+                          {pet.users.is_active ? "Active" : "Blocked"}
+                        </Badge>
+                        {pet.users.is_verified && (
+                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px] px-1.5 h-4">
+                            Verified
+                          </Badge>
+                        )}
+                        {pet.users.is_premium && (
+                          <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px] px-1.5 h-4">
+                            Premium
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-0.5">
+                    <InfoRow
+                      icon={<Mail className="h-4 w-4" />}
+                      label="Email"
+                      value={pet.users.email}
+                    />
+                    <InfoRow
+                      icon={<Phone className="h-4 w-4" />}
+                      label="Phone"
+                      value={<span className="font-mono">{pet.users.phone}</span>}
+                    />
+                    <InfoRow
+                      icon={<UserIcon className="h-4 w-4" />}
+                      label="Auth Type"
+                      value={
+                        <Badge variant="outline" className="capitalize text-xs">
+                          {pet.users.auth_type}
+                        </Badge>
+                      }
+                    />
+                    <InfoRow
+                      icon={<Crown className="h-4 w-4" />}
+                      label="Premium"
+                      value={
+                        pet.users.is_premium
+                          ? `Yes — expires ${formatDate(pet.users.premium_expires_at)}`
+                          : "No"
+                      }
+                    />
+                    <InfoRow
+                      icon={<LogIn className="h-4 w-4" />}
+                      label="Logins"
+                      value={`${pet.users.login_count} time${pet.users.login_count !== 1 ? "s" : ""} · Last: ${formatDate(pet.users.last_login_at)}`}
+                    />
+                    <InfoRow
+                      icon={<Calendar className="h-4 w-4" />}
+                      label="Joined"
+                      value={formatDate(pet.users.created_at)}
+                    />
+                  </div>
                 </div>
               </div>
             )}

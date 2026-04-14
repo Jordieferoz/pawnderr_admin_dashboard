@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Bell, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import { authLogout, authMe } from "@utils/api";
@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -30,7 +29,7 @@ export function ProfileDropdown() {
     async function fetchUser() {
       try {
         const response = await authMe();
-        console.log(response, "response");
+
         if (response.statusCode && response?.data.data) {
           setActiveUser({
             name: response.data.data.name,
@@ -49,12 +48,12 @@ export function ProfileDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="size-9 rounded-lg">
+        <Avatar className="size-9 rounded-full">
           <AvatarImage
             src={activeUser.avatar || undefined}
             alt={activeUser.name}
           />
-          <AvatarFallback className="rounded-lg">
+          <AvatarFallback className="rounded-full">
             {getInitials(activeUser.name)}
           </AvatarFallback>
         </Avatar>
@@ -75,7 +74,7 @@ export function ProfileDropdown() {
                 src={activeUser.avatar || undefined}
                 alt={activeUser.name}
               />
-              <AvatarFallback className="rounded-lg">
+              <AvatarFallback className="rounded-full">
                 {getInitials(
                   activeUser.name !== "Loading..." ? activeUser.name : "US",
                 )}
@@ -88,13 +87,13 @@ export function ProfileDropdown() {
           </div>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
+        {/* <DropdownMenuGroup>
           <DropdownMenuItem>
             <Bell />
             Notifications
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator /> */}
         <DropdownMenuItem
           onClick={async () => {
             try {

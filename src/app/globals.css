@@ -179,3 +179,7 @@ html {
 .disable-transitions * {
   transition: none !important;
 }
+
+button {
+  cursor: pointer;
+}

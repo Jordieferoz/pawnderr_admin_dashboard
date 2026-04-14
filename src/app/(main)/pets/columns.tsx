@@ -33,6 +33,7 @@ export type Pet = {
   pet_categories: { id: number; name: string } | null;
   pet_breeds: { id: number; name: string } | null;
   images: { id: number; image_url: string; is_primary: boolean }[];
+  users?: any;
   created_at: string;
 };
 
