@@ -254,3 +254,62 @@ export const fetchPets = (params?: {
       });
   });
 };
+
+export const fetchSubscriptionManualMode = (): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalGetService<any, any>(`settings/subscription-manual-mode`, null)
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const setSubscriptionManualMode = (payload: {
+  enabled: boolean;
+  message?: string;
+}): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalPostService<any, any>(`settings/subscription-manual-mode`, payload)
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+
+export const grantPremium = (
+  userId: number,
+  payload: { plan_id: number; reason: string },
+): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalPutService<any, any>(`users/${userId}/grant-premium`, payload)
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+export const revokePremium = (
+  userId: number,
+  payload: { reason: string },
+): Promise<TResponse<any>> => {
+  return new Promise((resolve, reject) => {
+    globalPutService<any, any>(`users/${userId}/revoke-premium`, payload)
+      .then((response) => {
+        resolve(response);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+

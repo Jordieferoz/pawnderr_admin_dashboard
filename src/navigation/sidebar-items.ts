@@ -2,6 +2,7 @@ import {
   CircleDollarSign,
   LayoutDashboard,
   PawPrint,
+  Settings,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -53,6 +54,11 @@ export const sidebarItems: NavGroup[] = [
         title: "Subscriptions",
         url: "/subscriptions",
         icon: CircleDollarSign,
+      },
+      {
+        title: "Settings",
+        url: "/settings",
+        icon: Settings,
       },
     ],
   },

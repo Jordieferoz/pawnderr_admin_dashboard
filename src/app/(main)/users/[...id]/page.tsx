@@ -13,13 +13,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useSubscriptionManualModeStore } from "@/stores/subscription-manual-mode/subscription-manual-mode-store";
 import {
   blockUser,
   fetchPetRegistrationData,
+  fetchSubscriptions,
   fetchUserDetails,
   fetchUserPets,
+  grantPremium,
+  revokePremium,
   unBlockUser,
   unverifyPet,
   updateFoundingDog,
@@ -480,7 +487,35 @@ export default function UserDetailPage({
   const [petsLoading, setPetsLoading] = useState(true);
   const [registrationData, setRegistrationData] = useState<any>(null);
 
+  // Manual Premium states
+  const manualModeStore = useSubscriptionManualModeStore();
+  const [plans, setPlans] = useState<any[]>([]);
+
+  const [isGrantOpen, setIsGrantOpen] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
+  const [grantReason, setGrantReason] = useState("Manual upgrade via admin panel");
+  const [grantLoading, setGrantLoading] = useState(false);
+
+  const [isRevokeOpen, setIsRevokeOpen] = useState(false);
+  const [revokeReason, setRevokeReason] = useState("Manual revoke via admin panel");
+  const [revokeLoading, setRevokeLoading] = useState(false);
+
   useEffect(() => {
+    manualModeStore.fetch();
+    fetchSubscriptions({ limit: 100 })
+      .then((res) => {
+        const subs = res?.data?.data?.data ?? [];
+        const plansMap = new Map();
+        subs.forEach((sub: any) => {
+          if (sub.subscription_plans) {
+            plansMap.set(sub.subscription_plans.id, sub.subscription_plans);
+          }
+        });
+        const extractedPlans = Array.from(plansMap.values());
+        setPlans(extractedPlans);
+      })
+      .catch((err) => console.error("Failed to load plans from subscriptions", err));
+
     fetchPetRegistrationData()
       .then((res) => setRegistrationData(res?.data?.data ?? res?.data))
       .catch((err) =>
@@ -509,6 +544,53 @@ export default function UserDetailPage({
       .catch((err) => console.error("Failed to load user pets", err))
       .finally(() => setPetsLoading(false));
   }, [userId]);
+
+  const activePlans = plans.length > 0 ? plans : [
+    { id: 1, name: "Premium Monthly" },
+    { id: 2, name: "Premium Quarterly" },
+    { id: 3, name: "Premium Yearly" },
+  ];
+
+  async function handleGrantPremium() {
+    if (!selectedPlanId) {
+      toast.error("Please select a subscription plan");
+      return;
+    }
+    setGrantLoading(true);
+    try {
+      await grantPremium(userId, {
+        plan_id: Number(selectedPlanId),
+        reason: grantReason,
+      });
+      toast.success("Premium granted successfully");
+      setIsGrantOpen(false);
+      // Refresh user details
+      const userRes = await fetchUserDetails(userId);
+      setUser(userRes?.data?.data ?? userRes?.data);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to grant premium");
+    } finally {
+      setGrantLoading(false);
+    }
+  }
+
+  async function handleRevokePremium() {
+    setRevokeLoading(true);
+    try {
+      await revokePremium(userId, {
+        reason: revokeReason,
+      });
+      toast.success("Premium revoked successfully");
+      setIsRevokeOpen(false);
+      // Refresh user details
+      const userRes = await fetchUserDetails(userId);
+      setUser(userRes?.data?.data ?? userRes?.data);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to revoke premium");
+    } finally {
+      setRevokeLoading(false);
+    }
+  }
 
   async function handleBlockToggle(checked: boolean) {
     if (!user) return;
@@ -648,9 +730,61 @@ export default function UserDetailPage({
               icon={<Crown className="h-4 w-4" />}
               label="Premium"
               value={
-                user.is_premium
-                  ? `Yes — expires ${formatDate(user.premium_expires_at)}`
-                  : "No"
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <span>
+                      {user.is_premium ? (
+                        <span className="font-semibold text-amber-600 dark:text-amber-500">
+                          Yes — expires {formatDate(user.premium_expires_at)}
+                        </span>
+                      ) : (
+                        "No"
+                      )}
+                    </span>
+                    <Link
+                      href={`/subscriptions?user_id=${user.id}`}
+                      className="text-xs text-primary hover:underline font-medium shrink-0"
+                    >
+                      View Subscriptions →
+                    </Link>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-dashed">
+                    {manualModeStore.enabled ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          className="h-7 text-xs border-amber-500/30 text-amber-700 hover:bg-amber-500/5 hover:text-amber-700 dark:text-amber-500"
+                          disabled={user.is_premium}
+                          onClick={() => {
+                            setSelectedPlanId(activePlans[0]?.id ? String(activePlans[0].id) : "");
+                            setGrantReason("Manual upgrade via admin panel");
+                            setIsGrantOpen(true);
+                          }}
+                        >
+                          Grant Premium
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="xs"
+                          className="h-7 text-xs"
+                          disabled={!user.is_premium}
+                          onClick={() => {
+                            setRevokeReason("Manual revoke via admin panel");
+                            setIsRevokeOpen(true);
+                          }}
+                        >
+                          Revoke Premium
+                        </Button>
+                      </>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground italic leading-normal">
+                        ℹ Manual grant/revoke is disabled (Razorpay active)
+                      </span>
+                    )}
+                  </div>
+                </div>
               }
             />
             <InfoRow
@@ -708,6 +842,118 @@ export default function UserDetailPage({
             </div>
           )}
         </div>
+      )}
+
+      {/* Grant/Revoke Dialog Modals */}
+      {!loading && !error && user && (
+        <>
+          {/* Grant Premium Dialog */}
+          <Dialog open={isGrantOpen} onOpenChange={setIsGrantOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-1.5 text-amber-600 dark:text-amber-500">
+                  <Crown className="size-5" />
+                  Grant Premium Subscription
+                </DialogTitle>
+                <DialogDescription>
+                  Manually assign a premium subscription package to <strong>{user.name}</strong>.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="plan-select" className="text-xs font-semibold">
+                    Select Plan
+                  </Label>
+                  <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
+                    <SelectTrigger id="plan-select" className="w-full">
+                      <SelectValue placeholder="Select subscription plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activePlans.map((p) => (
+                        <SelectItem key={p.id} value={String(p.id)}>
+                          {p.name} {p.price && p.currency ? `(${p.price} ${p.currency})` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="grant-reason" className="text-xs font-semibold">
+                    Justification / Reason
+                  </Label>
+                  <Textarea
+                    id="grant-reason"
+                    value={grantReason}
+                    onChange={(e) => setGrantReason(e.target.value)}
+                    placeholder="Provide a reason for manual premium grant"
+                    className="resize-none"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" size="sm" onClick={() => setIsGrantOpen(false)}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleGrantPremium} disabled={grantLoading}>
+                  {grantLoading ? (
+                    <>
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      Granting...
+                    </>
+                  ) : (
+                    "Grant Premium"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Revoke Premium Dialog */}
+          <Dialog open={isRevokeOpen} onOpenChange={setIsRevokeOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-1.5 text-destructive">
+                  <AlertTriangle className="size-5" />
+                  Revoke Premium Subscription
+                </DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to revoke premium access for <strong>{user.name}</strong>? This action takes effect immediately.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="revoke-reason" className="text-xs font-semibold">
+                    Revocation Reason
+                  </Label>
+                  <Textarea
+                    id="revoke-reason"
+                    value={revokeReason}
+                    onChange={(e) => setRevokeReason(e.target.value)}
+                    placeholder="Provide a reason for revoking premium"
+                    className="resize-none"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" size="sm" onClick={() => setIsRevokeOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" size="sm" onClick={handleRevokePremium} disabled={revokeLoading}>
+                  {revokeLoading ? (
+                    <>
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      Revoking...
+                    </>
+                  ) : (
+                    "Revoke Premium"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
       )}
     </div>
   );
