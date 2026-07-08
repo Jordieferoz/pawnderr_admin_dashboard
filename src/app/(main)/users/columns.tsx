@@ -118,25 +118,25 @@ export const userColumns: ColumnDef<User>[] = [
     },
     enableSorting: false,
   },
-  {
-    accessorKey: "profile_completion_percentage",
-    header: "Profile",
-    cell: ({ row }) => {
-      const pct: number = row.getValue("profile_completion_percentage");
-      return (
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 w-20 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-          <span className="text-xs text-muted-foreground">{pct}%</span>
-        </div>
-      );
-    },
-    enableSorting: false,
-  },
+  // {
+  //   accessorKey: "profile_completion_percentage",
+  //   header: "Profile",
+  //   cell: ({ row }) => {
+  //     const pct: number = row.getValue("profile_completion_percentage");
+  //     return (
+  //       <div className="flex items-center gap-2">
+  //         <div className="h-1.5 w-20 rounded-full bg-muted overflow-hidden">
+  //           <div
+  //             className="h-full rounded-full bg-primary transition-all"
+  //             style={{ width: `${pct}%` }}
+  //           />
+  //         </div>
+  //         <span className="text-xs text-muted-foreground">{pct}%</span>
+  //       </div>
+  //     );
+  //   },
+  //   enableSorting: false,
+  // },
   {
     accessorKey: "login_count",
     header: "Logins",
