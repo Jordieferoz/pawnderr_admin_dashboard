@@ -11,7 +11,10 @@ import { fetchSubscriptions } from "@utils/api";
 import { Loader2, Search, SlidersHorizontal, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Subscription, SubscriptionPagination } from "../../../../types/subscriptions";
+import {
+  Subscription,
+  SubscriptionPagination,
+} from "../../../../types/subscriptions";
 import { subscriptionColumns } from "./columns";
 
 const FILTER_LABELS: Record<"active" | "expired" | "cancelled", string> = {
@@ -28,13 +31,18 @@ export default function SubscriptionPage() {
   const page = Number(searchParams.get("page") ?? "1");
   const pageSize = Number(searchParams.get("limit") ?? "10");
   const statusParam = searchParams.get("status");
-  const status = (statusParam === "active" || statusParam === "expired" || statusParam === "cancelled")
-    ? statusParam
-    : undefined;
+  const status =
+    statusParam === "active" ||
+    statusParam === "expired" ||
+    statusParam === "cancelled"
+      ? statusParam
+      : undefined;
   const userIdParam = searchParams.get("user_id") ?? "";
 
   const [data, setData] = useState<Subscription[]>([]);
-  const [pagination, setPagination] = useState<SubscriptionPagination | null>(null);
+  const [pagination, setPagination] = useState<SubscriptionPagination | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,6 +97,7 @@ export default function SubscriptionPage() {
         sort: "created_at",
         order: "DESC",
       });
+      console.log(res, "res");
       const inner = res?.data?.data?.data;
       const paginationData = res?.data?.data?.pagination;
       setData(inner ?? []);
@@ -144,14 +153,17 @@ export default function SubscriptionPage() {
   }
 
   const hasFilters = status !== undefined || !!userIdParam;
-  const activeFilterCount = (status !== undefined ? 1 : 0) + (userIdParam ? 1 : 0);
+  const activeFilterCount =
+    (status !== undefined ? 1 : 0) + (userIdParam ? 1 : 0);
 
   return (
     <div className="@container/main flex flex-col gap-4 md:gap-6">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Subscriptions</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Subscriptions
+          </h1>
           {pagination && (
             <p className="text-sm text-muted-foreground mt-0.5">
               {pagination.total} total subscriptions
@@ -265,7 +277,9 @@ export default function SubscriptionPage() {
               <DataTable
                 table={table}
                 columns={subscriptionColumns}
-                onRowClick={(row) => router.push(`/users/${row.original.users.id}`)}
+                onRowClick={(row) =>
+                  router.push(`/users/${row.original.users.id}`)
+                }
               />
             </div>
             <div className="border-t py-3">

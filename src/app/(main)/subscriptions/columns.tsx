@@ -26,14 +26,14 @@ function formatCurrency(price: string, currency: string) {
 
 export const subscriptionColumns: ColumnDef<Subscription>[] = [
   {
-    accessorKey: "id",
-    header: "ID",
+    accessorKey: "user_id",
+    header: "User ID",
     cell: ({ row }) => (
       <span className="font-mono text-xs text-muted-foreground">
-        #{row.getValue("id")}
+        #{row.getValue("user_id")}
       </span>
     ),
-    size: 60,
+    size: 80,
     enableHiding: false,
     enableSorting: false,
   },
