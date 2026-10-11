@@ -83,7 +83,7 @@ export default function UsersPage() {
   useEffect(() => {
     if (!searchParams.has("has_pet")) {
       const params = new URLSearchParams(searchParams.toString());
-      params.set("has_pet", "false");
+      params.set("has_pet", "true");
       router.replace(`${pathname}?${params.toString()}`);
     }
   }, [searchParams, pathname, router]);
