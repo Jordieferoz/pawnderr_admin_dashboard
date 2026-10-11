@@ -74,7 +74,7 @@ function axiosInstanceCreator(baseURL: string | undefined, accessKey?: string) {
         if (!(window as any).__signingOut) {
           (window as any).__signingOut = true;
           const { signOut } = await import("next-auth/react");
-          await signOut({ callbackUrl: "/login" });
+          await signOut({ callbackUrl: "/auth/login" });
         }
       }
       return Promise.reject(error);

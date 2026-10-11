@@ -61,6 +61,8 @@ export const authMe = (): Promise<TResponse<any>> => {
 export const fetchUsers = (params?: {
   is_premium?: boolean;
   is_active?: boolean;
+  has_pet?: boolean;
+  search?: string;
   page?: number;
   limit?: number;
   sort?: string;

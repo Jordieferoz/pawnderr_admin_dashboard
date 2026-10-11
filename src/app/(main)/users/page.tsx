@@ -13,17 +13,27 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { User, UserPagination } from "../../../../types/users";
 import { userColumns } from "./columns";
 
-type FilterKey = "is_active" | "is_premium";
+type FilterKey = "is_active" | "is_premium" | "has_pet";
 
-const FILTER_LABELS: Record<
-  "active" | "inactive" | "premium" | "free",
-  string
-> = {
+const FILTER_LABELS = {
   active: "Active",
   inactive: "Inactive",
   premium: "Premium",
   free: "Free",
-};
+  noPet: "No pet",
+  hasPet: "Has pet",
+} as const;
+
+/** `all` = show everyone; missing key defaults to no-pet (has_pet=false). */
+function parseHasPet(
+  value: string | null,
+): boolean | undefined {
+  if (value === null) return false;
+  if (value === "all") return undefined;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return false;
+}
 
 function parseBool(value: string | null): boolean | undefined {
   if (value === "true") return true;
@@ -40,6 +50,9 @@ export default function UsersPage() {
   const pageSize = Number(searchParams.get("limit") ?? "10");
   const isActive = parseBool(searchParams.get("is_active"));
   const isPremium = parseBool(searchParams.get("is_premium"));
+  const hasPet = parseHasPet(
+    searchParams.has("has_pet") ? searchParams.get("has_pet") : null,
+  );
   const query = searchParams.get("q") ?? "";
 
   // Local state for the input so it feels responsive while debounce is pending
@@ -65,6 +78,15 @@ export default function UsersPage() {
     },
     [router, pathname, searchParams],
   );
+
+  // Persist default "No pet" in the URL so shareable links match what you see
+  useEffect(() => {
+    if (!searchParams.has("has_pet")) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("has_pet", "false");
+      router.replace(`${pathname}?${params.toString()}`);
+    }
+  }, [searchParams, pathname, router]);
 
   // Sync input if URL changes externally (back/forward nav)
   useEffect(() => {
@@ -95,6 +117,7 @@ export default function UsersPage() {
         ...(query ? { search: query } : {}),
         ...(isActive !== undefined ? { is_active: isActive } : {}),
         ...(isPremium !== undefined ? { is_premium: isPremium } : {}),
+        ...(hasPet !== undefined ? { has_pet: hasPet } : {}),
       });
       setData(res?.data?.data?.data ?? []);
       setPagination(res?.data?.data?.pagination ?? null);
@@ -103,13 +126,21 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, query, isActive, isPremium]);
+  }, [page, pageSize, query, isActive, isPremium, hasPet]);
 
   useEffect(() => {
     loadUsers();
   }, [loadUsers]);
 
   function toggleFilter(key: FilterKey, value: boolean) {
+    if (key === "has_pet") {
+      // Toggle off → show all users (sentinel "all", not missing — missing re-defaults)
+      updateParams({
+        has_pet: hasPet === value ? "all" : String(value),
+        page: "1",
+      });
+      return;
+    }
     const current = key === "is_active" ? isActive : isPremium;
     updateParams({
       [key]: current === value ? null : String(value),
@@ -118,13 +149,22 @@ export default function UsersPage() {
   }
 
   function clearFilters() {
-    updateParams({ is_active: null, is_premium: null, page: "1" });
+    // Reset status/premium; restore default "No pet"
+    updateParams({
+      is_active: null,
+      is_premium: null,
+      has_pet: "false",
+      page: "1",
+    });
   }
 
-  const hasFilters = isActive !== undefined || isPremium !== undefined;
-  const activeFilterCount = [isActive, isPremium].filter(
-    (v) => v !== undefined,
-  ).length;
+  // Default view is "No pet" only — Clear / badge reflect departure from that
+  const hasExtraFilters = isActive !== undefined || isPremium !== undefined;
+  const hasPetNonDefault = hasPet !== false;
+  const hasFilters = hasExtraFilters || hasPetNonDefault;
+  const activeFilterCount =
+    [isActive, isPremium].filter((v) => v !== undefined).length +
+    (hasPet === false ? 1 : hasPet === true ? 1 : 0);
 
   const table = useReactTable({
     data,
@@ -191,6 +231,25 @@ export default function UsersPage() {
               </Badge>
             )}
           </span>
+
+          <Button
+            variant={hasPet === false ? "default" : "outline"}
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => toggleFilter("has_pet", false)}
+          >
+            {FILTER_LABELS.noPet}
+          </Button>
+          <Button
+            variant={hasPet === true ? "default" : "outline"}
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => toggleFilter("has_pet", true)}
+          >
+            {FILTER_LABELS.hasPet}
+          </Button>
+
+          <div className="h-5 w-px bg-border" />
 
           <Button
             variant={isActive === true ? "default" : "outline"}

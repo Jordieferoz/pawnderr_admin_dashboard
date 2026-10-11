@@ -4,6 +4,12 @@ export default withAuth({
   pages: {
     signIn: "/auth/login",
   },
+  callbacks: {
+    authorized: ({ token }) =>
+      !!token &&
+      !!token.accessToken &&
+      token.error !== "RefreshAccessTokenError",
+  },
 });
 
 export const config = {

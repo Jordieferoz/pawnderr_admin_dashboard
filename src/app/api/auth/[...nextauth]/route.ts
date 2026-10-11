@@ -3,7 +3,11 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 async function refreshAccessToken(token: any) {
   try {
-    const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/auth/refresh-token`;
+    const base = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(
+      /\/$/,
+      "",
+    );
+    const url = `${base}/auth/refresh-token`;
     const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
@@ -27,14 +31,18 @@ async function refreshAccessToken(token: any) {
     return {
       ...token,
       accessToken: refreshedTokens.data.accessToken,
-      refreshToken: refreshedTokens.data.refreshToken ?? token.refreshToken, // Fall back to old refresh token
+      refreshToken: refreshedTokens.data.refreshToken ?? token.refreshToken,
       accessTokenExpires: decoded.exp * 1000,
+      error: undefined,
     };
   } catch (error) {
     console.error("Error refreshing token:", error);
 
     return {
       ...token,
+      accessToken: undefined,
+      refreshToken: undefined,
+      accessTokenExpires: 0,
       error: "RefreshAccessTokenError",
     };
   }
@@ -97,6 +105,16 @@ export const authOptions: NextAuthOptions = {
         Date.now() < (token.accessTokenExpires as number) - 60000
       ) {
         return token;
+      }
+
+      if (!token.refreshToken) {
+        return {
+          ...token,
+          accessToken: undefined,
+          refreshToken: undefined,
+          accessTokenExpires: 0,
+          error: "RefreshAccessTokenError",
+        };
       }
 
       // Access token has expired, try to update it
